@@ -1,132 +1,47 @@
 import { useState } from 'react';
 import AdminLayout from '../../components/common/AdminLayout';
 import toast from 'react-hot-toast';
+import { useEffect } from 'react';
+import api from '../../api/axiosInstance';
 
-const initialUsers = [
-  {
-    id: 1,
-    name: 'Arjun Kumar',
-    email: 'arjun@example.com',
-    role: 'seeker',
-    location: 'Bangalore, India',
-    joined: 'Jan 12, 2025',
-    status: 'Active',
-    applications: 12,
-    avatar: 'AK',
-    color: 'from-blue-500 to-cyan-500',
-    lastActive: '2 min ago',
-  },
-  {
-    id: 2,
-    name: 'TechCorp Inc.',
-    email: 'hr@techcorp.com',
-    role: 'employer',
-    location: 'Mumbai, India',
-    joined: 'Feb 3, 2025',
-    status: 'Active',
-    applications: 8,
-    avatar: 'TC',
-    color: 'from-yellow-500 to-orange-500',
-    lastActive: '15 min ago',
-  },
-  {
-    id: 3,
-    name: 'Priya Sharma',
-    email: 'priya@example.com',
-    role: 'seeker',
-    location: 'Mumbai, India',
-    joined: 'Mar 1, 2025',
-    status: 'Pending',
-    applications: 5,
-    avatar: 'PS',
-    color: 'from-purple-500 to-pink-500',
-    lastActive: '1h ago',
-  },
-  {
-    id: 4,
-    name: 'StartupXYZ',
-    email: 'jobs@startupxyz.com',
-    role: 'employer',
-    location: 'Delhi, India',
-    joined: 'Mar 10, 2025',
-    status: 'Active',
-    applications: 3,
-    avatar: 'SX',
-    color: 'from-green-500 to-teal-500',
-    lastActive: '3h ago',
-  },
-  {
-    id: 5,
-    name: 'Rahul Verma',
-    email: 'rahul@example.com',
-    role: 'seeker',
-    location: 'Delhi, India',
-    joined: 'Mar 15, 2025',
-    status: 'Suspended',
-    applications: 2,
-    avatar: 'RV',
-    color: 'from-red-500 to-orange-500',
-    lastActive: '2d ago',
-  },
-  {
-    id: 6,
-    name: 'Anjali Singh',
-    email: 'anjali@example.com',
-    role: 'seeker',
-    location: 'Chennai, India',
-    joined: 'Apr 1, 2025',
-    status: 'Active',
-    applications: 7,
-    avatar: 'AS',
-    color: 'from-pink-500 to-rose-500',
-    lastActive: '30 min ago',
-  },
-  {
-    id: 7,
-    name: 'Mohammed Raza',
-    email: 'raza@example.com',
-    role: 'seeker',
-    location: 'Hyderabad, India',
-    joined: 'Apr 3, 2025',
-    status: 'Active',
-    applications: 9,
-    avatar: 'MR',
-    color: 'from-green-500 to-emerald-500',
-    lastActive: '5 min ago',
-  },
-  {
-    id: 8,
-    name: 'MegaCorp HR',
-    email: 'hr@megacorp.com',
-    role: 'employer',
-    location: 'Pune, India',
-    joined: 'Apr 5, 2025',
-    status: 'Pending',
-    applications: 0,
-    avatar: 'MC',
-    color: 'from-blue-500 to-purple-500',
-    lastActive: 'Never',
-  },
-];
+
+
 
 const statusConfig = {
-  Active:    { color: 'bg-green-500/10 text-green-400 border-green-500/20'  },
-  Pending:   { color: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20' },
-  Suspended: { color: 'bg-red-500/10 text-red-400 border-red-500/20'        },
+  Active: { color: 'bg-green-500/10 text-green-400 border-green-500/20' },
+  Pending: { color: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20' },
+  Suspended: { color: 'bg-red-500/10 text-red-400 border-red-500/20' },
 };
 
 const roleConfig = {
-  seeker:   { color: 'bg-blue-500/10 text-blue-400',   label: 'Job Seeker' },
-  employer: { color: 'bg-yellow-500/10 text-yellow-400', label: 'Employer'  },
-  admin:    { color: 'bg-red-500/10 text-red-400',      label: 'Admin'      },
+  seeker: { color: 'bg-blue-500/10 text-blue-400', label: 'Job Seeker' },
+  employer: { color: 'bg-yellow-500/10 text-yellow-400', label: 'Employer' },
+  admin: { color: 'bg-red-500/10 text-red-400', label: 'Admin' },
 };
 
 export default function AdminUsers() {
-  const [users, setUsers]           = useState(initialUsers);
-  const [search, setSearch]         = useState('');
+
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('All');
   const [statusFilter, setStatusFilter] = useState('All');
   const [selectedUser, setSelectedUser] = useState(null);
+
+  useEffect(() => {
+  const fetchUsers = async () => {
+    try {
+      const res = await api.get('/users');
+      setUsers(res.data || []);
+    } catch (err) {
+      toast.error('Failed to load users');
+    } finally {
+      setLoading(false);
+    }
+  };
+  fetchUsers();
+}, []);
+
 
   const filtered = users
     .filter((u) =>
@@ -137,27 +52,32 @@ export default function AdminUsers() {
     .filter((u) => roleFilter === 'All' || u.role === roleFilter.toLowerCase())
     .filter((u) => statusFilter === 'All' || u.status === statusFilter);
 
-  const updateUserStatus = (id, status) => {
-    setUsers((prev) =>
-      prev.map((u) => (u.id === id ? { ...u, status } : u))
-    );
-    toast.success(`User ${status.toLowerCase()}!`);
-    if (selectedUser?.id === id) {
-      setSelectedUser((prev) => ({ ...prev, status }));
+  const updateUserStatus = async (id, status) => {
+    try {
+      await api.patch(`/users/${id}/status`, { isActive: status === 'Active' });
+      setUsers(prev => prev.map(u => u._id === id ? { ...u, status } : u));
+      toast.success(`User ${status.toLowerCase()}!`);
+      if (selectedUser?._id === id) setSelectedUser(prev => ({ ...prev, status }));
+    } catch (err) {
+      toast.error('Failed to update user');
+    }
+  };
+  const deleteUser = async (id) => {
+    try {
+      await api.delete(`/users/${id}`);
+      setUsers(prev => prev.filter(u => u._id !== id));
+      if (selectedUser?._id === id) setSelectedUser(null);
+      toast.success('User deleted!');
+    } catch (err) {
+      toast.error('Failed to delete user');
     }
   };
 
-  const deleteUser = (id) => {
-    setUsers((prev) => prev.filter((u) => u.id !== id));
-    if (selectedUser?.id === id) setSelectedUser(null);
-    toast.success('User deleted!');
-  };
-
   const stats = {
-    total:    users.length,
-    seekers:  users.filter((u) => u.role === 'seeker').length,
-    employers:users.filter((u) => u.role === 'employer').length,
-    pending:  users.filter((u) => u.status === 'Pending').length,
+    total: users.length,
+    seekers: users.filter((u) => u.role === 'seeker').length,
+    employers: users.filter((u) => u.role === 'employer').length,
+    pending: users.filter((u) => u.status === 'Pending').length,
   };
 
   return (
@@ -190,10 +110,10 @@ export default function AdminUsers() {
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
         {[
-          { label: 'Total Users',  value: stats.total,     color: 'text-white',          bg: 'from-gray-800'        },
-          { label: 'Job Seekers',  value: stats.seekers,   color: 'text-blue-400',       bg: 'from-blue-500/10'     },
-          { label: 'Employers',    value: stats.employers, color: 'text-yellow-400',     bg: 'from-yellow-500/10'   },
-          { label: 'Pending',      value: stats.pending,   color: 'text-yellow-400',     bg: 'from-yellow-500/10'   },
+          { label: 'Total Users', value: stats.total, color: 'text-white', bg: 'from-gray-800' },
+          { label: 'Job Seekers', value: stats.seekers, color: 'text-blue-400', bg: 'from-blue-500/10' },
+          { label: 'Employers', value: stats.employers, color: 'text-yellow-400', bg: 'from-yellow-500/10' },
+          { label: 'Pending', value: stats.pending, color: 'text-yellow-400', bg: 'from-yellow-500/10' },
         ].map((s) => (
           <div
             key={s.label}
@@ -254,19 +174,18 @@ export default function AdminUsers() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-800/50">
+              // In the table rows — update onClick and key:
               {filtered.map((user) => (
                 <tr
-                  key={user.id}
+                  key={user._id}
                   onClick={() => setSelectedUser(user)}
-                  className={`cursor-pointer transition-colors hover:bg-gray-800/40 ${
-                    selectedUser?.id === user.id ? 'bg-red-500/5' : ''
-                  }`}
+                  className={`cursor-pointer transition-colors hover:bg-gray-800/40 ${selectedUser?._id === user._id ? 'bg-red-500/5' : ''
+                    }`}
                 >
-                  {/* User */}
                   <td className="py-3 pr-4">
                     <div className="flex items-center gap-2.5">
-                      <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${user.color} flex items-center justify-center text-xs font-bold flex-shrink-0`}>
-                        {user.avatar}
+                      <div className={`w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-xs font-bold flex-shrink-0`}>
+                        {user.name?.charAt(0)?.toUpperCase() || 'U'}
                       </div>
                       <div className="min-w-0">
                         <div className="text-sm font-medium text-white truncate">{user.name}</div>
@@ -274,55 +193,41 @@ export default function AdminUsers() {
                       </div>
                     </div>
                   </td>
-
-                  {/* Role */}
                   <td className="py-3 pr-4">
                     <span className={`text-xs px-2.5 py-1 rounded-full ${roleConfig[user.role]?.color}`}>
                       {roleConfig[user.role]?.label}
                     </span>
                   </td>
-
-                  {/* Status */}
                   <td className="py-3 pr-4">
-                    <span className={`text-xs px-2.5 py-1 rounded-full border ${statusConfig[user.status]?.color}`}>
-                      {user.status}
+                    <span className={`text-xs px-2.5 py-1 rounded-full border ${user.isActive !== false ? statusConfig['Active']?.color : statusConfig['Suspended']?.color
+                      }`}>
+                      {user.isActive !== false ? 'Active' : 'Suspended'}
                     </span>
                   </td>
-
-                  {/* Joined */}
                   <td className="py-3 pr-4">
-                    <span className="text-xs text-gray-500">{user.joined}</span>
+                    <span className="text-xs text-gray-500">
+                      {new Date(user.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    </span>
                   </td>
-
-                  {/* Actions */}
                   <td className="py-3">
                     <div className="flex items-center gap-1.5">
-                      {user.status === 'Pending' && (
+                      {user.isActive !== false ? (
                         <button
-                          onClick={(e) => { e.stopPropagation(); updateUserStatus(user.id, 'Active'); }}
-                          className="text-xs bg-green-500/10 border border-green-500/20 text-green-400 px-2 py-1 rounded-lg hover:bg-green-500/20 transition-colors"
-                        >
-                          Verify
-                        </button>
-                      )}
-                      {user.status === 'Active' && (
-                        <button
-                          onClick={(e) => { e.stopPropagation(); updateUserStatus(user.id, 'Suspended'); }}
+                          onClick={(e) => { e.stopPropagation(); updateUserStatus(user._id, 'Suspended'); }}
                           className="text-xs bg-yellow-500/10 border border-yellow-500/20 text-yellow-400 px-2 py-1 rounded-lg hover:bg-yellow-500/20 transition-colors"
                         >
                           Suspend
                         </button>
-                      )}
-                      {user.status === 'Suspended' && (
+                      ) : (
                         <button
-                          onClick={(e) => { e.stopPropagation(); updateUserStatus(user.id, 'Active'); }}
+                          onClick={(e) => { e.stopPropagation(); updateUserStatus(user._id, 'Active'); }}
                           className="text-xs bg-green-500/10 border border-green-500/20 text-green-400 px-2 py-1 rounded-lg hover:bg-green-500/20 transition-colors"
                         >
                           Restore
                         </button>
                       )}
                       <button
-                        onClick={(e) => { e.stopPropagation(); deleteUser(user.id); }}
+                        onClick={(e) => { e.stopPropagation(); deleteUser(user._id); }}
                         className="text-xs bg-red-500/10 border border-red-500/20 text-red-400 px-2 py-1 rounded-lg hover:bg-red-500/20 transition-colors"
                       >
                         Delete
@@ -370,11 +275,13 @@ export default function AdminUsers() {
                 {/* Details */}
                 <div className="space-y-2 mb-4">
                   {[
-                    { label: 'Location',    value: selectedUser.location   },
-                    { label: 'Joined',      value: selectedUser.joined     },
+                    { label: 'Location', value: selectedUser.location },
+                    { label: 'Joined', value: selectedUser.joined },
                     { label: 'Last Active', value: selectedUser.lastActive },
-                    { label: selectedUser.role === 'employer' ? 'Jobs Posted' : 'Applications',
-                      value: selectedUser.applications },
+                    {
+                      label: selectedUser.role === 'employer' ? 'Jobs Posted' : 'Applications',
+                      value: selectedUser.applications
+                    },
                   ].map((item) => (
                     <div key={item.label} className="flex items-center justify-between py-1.5 border-b border-gray-800/50">
                       <span className="text-xs text-gray-500">{item.label}</span>

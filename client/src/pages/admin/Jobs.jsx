@@ -1,99 +1,12 @@
 import { useState } from 'react';
 import AdminLayout from '../../components/common/AdminLayout';
 import toast from 'react-hot-toast';
+import { useEffect } from 'react';
+import api from '../../api/axiosInstance';
 
-const initialJobs = [
-  {
-    id: 1,
-    title: 'Senior Full Stack Engineer',
-    company: 'Google',
-    location: 'Remote',
-    type: 'Full-time',
-    salary: '$180K',
-    applicants: 142,
-    status: 'Active',
-    posted: 'Mar 28, 2025',
-    logo: 'G',
-    color: 'bg-blue-500/10 text-blue-400',
-    skills: ['React', 'Node.js', 'GraphQL'],
-    flagged: false,
-  },
-  {
-    id: 2,
-    title: 'ML Engineer — LLMs',
-    company: 'OpenAI',
-    location: 'Remote',
-    type: 'Full-time',
-    salary: '$220K',
-    applicants: 89,
-    status: 'Active',
-    posted: 'Apr 1, 2025',
-    logo: 'O',
-    color: 'bg-yellow-500/10 text-yellow-400',
-    skills: ['Python', 'PyTorch', 'LLMs'],
-    flagged: false,
-  },
-  {
-    id: 3,
-    title: 'Suspicious Job Listing',
-    company: 'Unknown Co.',
-    location: 'Anywhere',
-    type: 'Contract',
-    salary: '$999K',
-    applicants: 0,
-    status: 'Flagged',
-    posted: 'Apr 5, 2025',
-    logo: '?',
-    color: 'bg-red-500/10 text-red-400',
-    skills: [],
-    flagged: true,
-  },
-  {
-    id: 4,
-    title: 'DevOps Engineer — Cloud',
-    company: 'Atlassian',
-    location: 'Remote',
-    type: 'Full-time',
-    salary: '$155K',
-    applicants: 67,
-    status: 'Active',
-    posted: 'Apr 1, 2025',
-    logo: 'A',
-    color: 'bg-cyan-500/10 text-cyan-400',
-    skills: ['Kubernetes', 'Terraform', 'AWS'],
-    flagged: false,
-  },
-  {
-    id: 5,
-    title: 'Frontend Engineer — React',
-    company: 'Stripe',
-    location: 'San Francisco',
-    type: 'Hybrid',
-    salary: '$175K',
-    applicants: 54,
-    status: 'Closed',
-    posted: 'Mar 20, 2025',
-    logo: 'S',
-    color: 'bg-green-500/10 text-green-400',
-    skills: ['React', 'TypeScript'],
-    flagged: false,
-  },
-  {
-    id: 6,
-    title: 'Spam Listing — Work From Home',
-    company: 'EasyMoney Ltd.',
-    location: 'Remote',
-    type: 'Part-time',
-    salary: '$50K',
-    applicants: 3,
-    status: 'Flagged',
-    posted: 'Apr 7, 2025',
-    logo: '!',
-    color: 'bg-red-500/10 text-red-400',
-    skills: [],
-    flagged: true,
-  },
-];
+
+
+
 
 const statusConfig = {
   Active:  { color: 'bg-green-500/10 text-green-400 border-green-500/20'  },
@@ -103,10 +16,37 @@ const statusConfig = {
 };
 
 export default function AdminJobs() {
-  const [jobs, setJobs]               = useState(initialJobs);
+  
+  const [jobs, setJobs] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch]           = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [selectedJob, setSelectedJob] = useState(null);
+  useEffect(() => {
+  const fetchJobs = async () => {
+    try {
+      const res = await api.get('/jobs?limit=100&status=all');
+      const rawJobs = res.data?.jobs || [];
+      // Map to expected shape
+      setJobs(rawJobs.map(j => ({
+        ...j,
+        id:         j._id,
+        company:    j.employer?.name || 'Company',
+        logo:       (j.employer?.name || j.title || 'J').charAt(0).toUpperCase(),
+        color:      'bg-blue-500/10 text-blue-400',
+        salary:     j.salary?.min ? `$${(j.salary.min/1000).toFixed(0)}K` : 'N/A',
+        applicants: j.applicants?.length || 0,
+        posted:     new Date(j.createdAt).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' }),
+        flagged:    j.status === 'flagged',
+      })));
+    } catch (err) {
+      toast.error('Failed to load jobs');
+    } finally {
+      setLoading(false);
+    }
+  };
+  fetchJobs();
+}, []);
 
   const filtered = jobs
     .filter((j) =>
@@ -116,19 +56,32 @@ export default function AdminJobs() {
     )
     .filter((j) => statusFilter === 'All' || j.status === statusFilter);
 
-  const updateJobStatus = (id, status) => {
-    setJobs((prev) =>
-      prev.map((j) => (j.id === id ? { ...j, status, flagged: status === 'Flagged' } : j))
-    );
-    if (selectedJob?.id === id) setSelectedJob((prev) => ({ ...prev, status }));
-    toast.success(`Job ${status.toLowerCase()}!`);
-  };
+  const updateJobStatus = async (id, status) => {
+  try {
+    await api.put(`/jobs/${id}`, { status });
+    setJobs(prev => prev.map(j =>
+      (j._id === id || j.id === id) ? { ...j, status, flagged: status === 'flagged' } : j
+    ));
+    if (selectedJob?._id === id || selectedJob?.id === id) {
+      setSelectedJob(prev => ({ ...prev, status }));
+    }
+    toast.success(`Job ${status}!`);
+  } catch (err) {
+    toast.error('Failed to update job');
+  }
+};
 
-  const deleteJob = (id) => {
-    setJobs((prev) => prev.filter((j) => j.id !== id));
-    if (selectedJob?.id === id) setSelectedJob(null);
+
+  const deleteJob = async (id) => {
+  try {
+    await api.delete(`/jobs/${id}`);
+    setJobs(prev => prev.filter(j => j._id !== id && j.id !== id));
+    if (selectedJob?._id === id || selectedJob?.id === id) setSelectedJob(null);
     toast.success('Job deleted!');
-  };
+  } catch (err) {
+    toast.error('Failed to delete job');
+  }
+};
 
   const stats = {
     total:   jobs.length,

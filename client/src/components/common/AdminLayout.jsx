@@ -4,10 +4,10 @@ import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
 
 const navItems = [
-  { label: 'Overview',  icon: '◉', path: '/admin/dashboard' },
-  { label: 'Users',     icon: '👥', path: '/admin/users'     },
-  { label: 'Jobs',      icon: '📋', path: '/admin/jobs'      },
-  { label: 'Analytics', icon: '📊', path: '/admin/analytics' },
+  { label: 'Overview',  icon: '◉', path: '/admin/dashboard'  },
+  { label: 'Users',     icon: '👥', path: '/admin/users'      },
+  { label: 'Jobs',      icon: '📋', path: '/admin/jobs'       },
+  { label: 'Analytics', icon: '📊', path: '/admin/analytics'  }, // ← was missing
 ];
 
 const systemItems = [

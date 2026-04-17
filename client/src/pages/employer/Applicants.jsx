@@ -8,30 +8,35 @@ import { getMyJobsAPI } from '../../api/jobsAPI';
 import toast from 'react-hot-toast';
 
 const statusConfig = {
-  applied:      { color: 'bg-blue-500/10 text-blue-400 border-blue-500/20',      label: 'Applied'      },
+  applied: { color: 'bg-blue-500/10 text-blue-400 border-blue-500/20', label: 'Applied' },
   under_review: { color: 'bg-purple-500/10 text-purple-400 border-purple-500/20', label: 'Under Review' },
-  shortlisted:  { color: 'bg-green-500/10 text-green-400 border-green-500/20',    label: 'Shortlisted'  },
-  interview:    { color: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20', label: 'Interview'    },
-  rejected:     { color: 'bg-red-500/10 text-red-400 border-red-500/20',          label: 'Rejected'     },
-  hired:        { color: 'bg-purple-500/10 text-purple-400 border-purple-500/20', label: 'Hired'        },
+  shortlisted: { color: 'bg-green-500/10 text-green-400 border-green-500/20', label: 'Shortlisted' },
+  interview: { color: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20', label: 'Interview' },
+  rejected: { color: 'bg-red-500/10 text-red-400 border-red-500/20', label: 'Rejected' },
+  hired: { color: 'bg-purple-500/10 text-purple-400 border-purple-500/20', label: 'Hired' },
 };
 
 const atsColor = (score) => {
-  if (!score)      return 'text-gray-500';
+  if (!score) return 'text-gray-500';
   if (score >= 85) return 'text-green-400';
   if (score >= 70) return 'text-yellow-400';
   return 'text-red-400';
 };
 
 export default function Applicants() {
-  const [applications,     setApplications]     = useState([]);
-  const [jobs,             setJobs]             = useState([]);
-  const [loading,          setLoading]          = useState(true);
-  const [selectedJob,      setSelectedJob]      = useState('all');
-  const [statusFilter,     setStatusFilter]     = useState('All');
-  const [search,           setSearch]           = useState('');
-  const [selectedApplicant,setSelectedApplicant]= useState(null);
-  const [sortBy,           setSortBy]           = useState('date');
+  const [applications, setApplications] = useState([]);
+  const [jobs, setJobs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedJob, setSelectedJob] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('All');
+  const [search, setSearch] = useState('');
+  const [selectedApplicant, setSelectedApplicant] = useState(null);
+  const [sortBy, setSortBy] = useState('date');
+  {/* Schedule Interview Modal State — add to component state */ }
+  const [showSchedule, setShowSchedule] = useState(false);
+  const [showEmail, setShowEmail] = useState(false);
+  const [scheduleForm, setScheduleForm] = useState({ date: '', time: '', type: 'Video Call', notes: '' });
+  const [emailForm, setEmailForm] = useState({ subject: '', message: '' });
 
   useEffect(() => {
     fetchData();
@@ -82,7 +87,7 @@ export default function Applicants() {
     )
     .sort((a, b) => {
       if (sortBy === 'atsScore') return (b.atsScore || 0) - (a.atsScore || 0);
-      if (sortBy === 'name')     return a.user?.name?.localeCompare(b.user?.name);
+      if (sortBy === 'name') return a.user?.name?.localeCompare(b.user?.name);
       return new Date(b.createdAt) - new Date(a.createdAt);
     });
 
@@ -117,11 +122,10 @@ export default function Applicants() {
       <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-1">
         <button
           onClick={() => setSelectedJob('all')}
-          className={`text-xs px-4 py-2 rounded-full border whitespace-nowrap transition-all ${
-            selectedJob === 'all'
-              ? 'bg-yellow-500/20 border-yellow-500/40 text-yellow-400'
-              : 'bg-gray-800 border-gray-700 text-gray-400 hover:border-gray-600'
-          }`}
+          className={`text-xs px-4 py-2 rounded-full border whitespace-nowrap transition-all ${selectedJob === 'all'
+            ? 'bg-yellow-500/20 border-yellow-500/40 text-yellow-400'
+            : 'bg-gray-800 border-gray-700 text-gray-400 hover:border-gray-600'
+            }`}
         >
           All Jobs ({applications.length})
         </button>
@@ -129,11 +133,10 @@ export default function Applicants() {
           <button
             key={job._id}
             onClick={() => setSelectedJob(job._id)}
-            className={`text-xs px-4 py-2 rounded-full border whitespace-nowrap transition-all ${
-              selectedJob === job._id
-                ? 'bg-yellow-500/20 border-yellow-500/40 text-yellow-400'
-                : 'bg-gray-800 border-gray-700 text-gray-400 hover:border-gray-600'
-            }`}
+            className={`text-xs px-4 py-2 rounded-full border whitespace-nowrap transition-all ${selectedJob === job._id
+              ? 'bg-yellow-500/20 border-yellow-500/40 text-yellow-400'
+              : 'bg-gray-800 border-gray-700 text-gray-400 hover:border-gray-600'
+              }`}
           >
             {job.title} ({applications.filter((a) => a.job?._id === job._id).length})
           </button>
@@ -201,11 +204,10 @@ export default function Applicants() {
                 <div
                   key={applicant._id}
                   onClick={() => setSelectedApplicant(applicant)}
-                  className={`p-4 rounded-xl border cursor-pointer transition-all duration-200 ${
-                    selectedApplicant?._id === applicant._id
-                      ? 'border-yellow-500/50 bg-yellow-500/5'
-                      : 'border-gray-800 bg-gray-900 hover:border-gray-700'
-                  }`}
+                  className={`p-4 rounded-xl border cursor-pointer transition-all duration-200 ${selectedApplicant?._id === applicant._id
+                    ? 'border-yellow-500/50 bg-yellow-500/5'
+                    : 'border-gray-800 bg-gray-900 hover:border-gray-700'
+                    }`}
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-xs font-bold flex-shrink-0">
@@ -291,13 +293,12 @@ export default function Applicants() {
                   <div className="mb-5">
                     <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
                       <div
-                        className={`h-full rounded-full transition-all duration-700 ${
-                          selectedApplicant.atsScore >= 85
-                            ? 'bg-gradient-to-r from-green-500 to-emerald-400'
-                            : selectedApplicant.atsScore >= 70
+                        className={`h-full rounded-full transition-all duration-700 ${selectedApplicant.atsScore >= 85
+                          ? 'bg-gradient-to-r from-green-500 to-emerald-400'
+                          : selectedApplicant.atsScore >= 70
                             ? 'bg-gradient-to-r from-yellow-500 to-amber-400'
                             : 'bg-gradient-to-r from-red-500 to-rose-400'
-                        }`}
+                          }`}
                         style={{ width: `${selectedApplicant.atsScore}%` }}
                       />
                     </div>
@@ -307,9 +308,9 @@ export default function Applicants() {
                 {/* Contact Info */}
                 <div className="grid grid-cols-2 gap-3 mb-5">
                   {[
-                    { icon: '✉️', label: 'Email',    value: selectedApplicant.user?.email       },
-                    { icon: '📅', label: 'Applied',  value: new Date(selectedApplicant.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) },
-                    { icon: '💼', label: 'Job',      value: selectedApplicant.job?.title        },
+                    { icon: '✉️', label: 'Email', value: selectedApplicant.user?.email },
+                    { icon: '📅', label: 'Applied', value: new Date(selectedApplicant.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) },
+                    { icon: '💼', label: 'Job', value: selectedApplicant.job?.title },
                     { icon: '📍', label: 'Location', value: selectedApplicant.user?.profile?.location || 'N/A' },
                   ].map((info) => (
                     <div key={info.label} className="bg-gray-800/60 rounded-xl p-3">
@@ -358,11 +359,10 @@ export default function Applicants() {
                       <button
                         key={key}
                         onClick={() => updateStatus(selectedApplicant._id, key)}
-                        className={`text-xs px-3 py-1.5 rounded-full border transition-all duration-200 ${
-                          selectedApplicant.status === key
-                            ? val.color
-                            : 'bg-gray-800 border-gray-700 text-gray-400 hover:border-gray-600'
-                        }`}
+                        className={`text-xs px-3 py-1.5 rounded-full border transition-all duration-200 ${selectedApplicant.status === key
+                          ? val.color
+                          : 'bg-gray-800 border-gray-700 text-gray-400 hover:border-gray-600'
+                          }`}
                       >
                         {val.label}
                       </button>
@@ -379,18 +379,165 @@ export default function Applicants() {
                     📄 Resume
                   </button>
                   <button
-                    onClick={() => toast.success(`Interview scheduled with ${selectedApplicant.user?.name}!`)}
+                    onClick={() => setShowSchedule(true)}
                     className="btn-outline py-2.5 text-xs"
                   >
                     📅 Schedule
                   </button>
                   <button
-                    onClick={() => toast.success(`Email sent to ${selectedApplicant.user?.name}!`)}
+                    onClick={() => {
+                      setEmailForm({
+                        subject: `Re: Your application for ${selectedApplicant?.job?.title}`,
+                        message: `Dear ${selectedApplicant?.user?.name},\n\nThank you for applying for the ${selectedApplicant?.job?.title} position.\n\n`,
+                      });
+                      setShowEmail(true);
+                    }}
                     className="btn-outline py-2.5 text-xs"
                   >
                     ✉️ Email
                   </button>
                 </div>
+
+                {/* Schedule Interview Panel */}
+                {showSchedule && (
+                  <div className="mt-4 p-4 bg-gray-800/60 border border-blue-500/20 rounded-xl">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="text-sm font-semibold text-white">Schedule Interview</h4>
+                      <button onClick={() => setShowSchedule(false)} className="text-gray-500 hover:text-white text-xs">✕ Close</button>
+                    </div>
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs text-gray-400 mb-1">Date</label>
+                          <input
+                            type="date"
+                            value={scheduleForm.date}
+                            onChange={e => setScheduleForm(p => ({ ...p, date: e.target.value }))}
+                            className="input-field text-xs"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-400 mb-1">Time</label>
+                          <input
+                            type="time"
+                            value={scheduleForm.time}
+                            onChange={e => setScheduleForm(p => ({ ...p, time: e.target.value }))}
+                            className="input-field text-xs"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-400 mb-1">Interview Type</label>
+                        <select
+                          value={scheduleForm.type}
+                          onChange={e => setScheduleForm(p => ({ ...p, type: e.target.value }))}
+                          className="input-field text-xs"
+                        >
+                          <option>Video Call</option>
+                          <option>Phone Call</option>
+                          <option>In-Person</option>
+                          <option>Technical Round</option>
+                          <option>HR Round</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-400 mb-1">Notes (optional)</label>
+                        <textarea
+                          value={scheduleForm.notes}
+                          onChange={e => setScheduleForm(p => ({ ...p, notes: e.target.value }))}
+                          placeholder="Any instructions or meeting link..."
+                          className="input-field text-xs resize-none"
+                          rows={2}
+                        />
+                      </div>
+                      <button
+                        onClick={() => {
+                          if (!scheduleForm.date || !scheduleForm.time) {
+                            toast.error('Please select date and time');
+                            return;
+                          }
+                          updateStatus(selectedApplicant._id, 'interview');
+                          toast.success(
+                            `✅ Interview scheduled with ${selectedApplicant.user?.name} on ${scheduleForm.date} at ${scheduleForm.time} (${scheduleForm.type})`
+                          );
+                          setShowSchedule(false);
+                          setScheduleForm({ date: '', time: '', type: 'Video Call', notes: '' });
+                        }}
+                        className="btn-primary w-full py-2.5 text-xs"
+                      >
+                        📅 Confirm & Schedule Interview
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Email Panel */}
+                {showEmail && (
+                  <div className="mt-4 p-4 bg-gray-800/60 border border-purple-500/20 rounded-xl">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="text-sm font-semibold text-white">
+                        Send Email to {selectedApplicant?.user?.name}
+                      </h4>
+                      <button onClick={() => setShowEmail(false)} className="text-gray-500 hover:text-white text-xs">✕ Close</button>
+                    </div>
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-xs text-gray-400 mb-1">To</label>
+                        <input
+                          value={selectedApplicant?.user?.email || ''}
+                          className="input-field text-xs bg-gray-700/50"
+                          readOnly
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-400 mb-1">Subject</label>
+                        <input
+                          value={emailForm.subject}
+                          onChange={e => setEmailForm(p => ({ ...p, subject: e.target.value }))}
+                          className="input-field text-xs"
+                          placeholder="Email subject..."
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-400 mb-1">Message</label>
+                        <textarea
+                          value={emailForm.message}
+                          onChange={e => setEmailForm(p => ({ ...p, message: e.target.value }))}
+                          className="input-field text-xs resize-none"
+                          rows={5}
+                          placeholder="Write your message..."
+                        />
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => {
+                            if (!emailForm.subject || !emailForm.message) {
+                              toast.error('Please fill in subject and message');
+                              return;
+                            }
+                            toast.success(`✅ Email sent to ${selectedApplicant?.user?.email}`);
+                            setShowEmail(false);
+                            setEmailForm({ subject: '', message: '' });
+                          }}
+                          className="btn-primary flex-1 py-2.5 text-xs"
+                        >
+                          ✉️ Send Email
+                        </button>
+                        <button
+                          onClick={() => {
+                            const subject = encodeURIComponent(emailForm.subject);
+                            const body = encodeURIComponent(emailForm.message);
+                            const email = selectedApplicant?.user?.email;
+                            window.open(`mailto:${email}?subject=${subject}&body=${body}`);
+                          }}
+                          className="btn-outline px-4 py-2.5 text-xs"
+                        >
+                          Open in Mail App
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}

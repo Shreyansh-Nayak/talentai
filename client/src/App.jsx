@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import AdminAnalytics from './pages/admin/Analytics';
 
 // Auth pages
 import Landing  from './pages/Landing';
@@ -21,11 +22,13 @@ import Profile         from './pages/seeker/Profile';
 import EmployerDashboard from './pages/employer/Dashboard';
 import PostJob           from './pages/employer/PostJob';
 import Applicants        from './pages/employer/Applicants';
+import MyJobs            from './pages/employer/MyJobs';
 
 // Admin pages
 import AdminDashboard from './pages/admin/Dashboard';
 import AdminUsers     from './pages/admin/Users';
 import AdminJobs      from './pages/admin/Jobs';
+
 
 function PrivateRoute({ children, roles }) {
   const { user, loading } = useAuth();
@@ -64,11 +67,13 @@ function AppRoutes() {
       <Route path="/employer/dashboard"   element={<PrivateRoute roles={['employer']}><EmployerDashboard /></PrivateRoute>} />
       <Route path="/employer/post-job"    element={<PrivateRoute roles={['employer']}><PostJob /></PrivateRoute>}            />
       <Route path="/employer/applicants"  element={<PrivateRoute roles={['employer']}><Applicants /></PrivateRoute>}         />
+      <Route path="/employer/jobs"        element={<PrivateRoute roles={['employer']}><MyJobs /></PrivateRoute>} />
 
       {/* Admin */}
       <Route path="/admin/dashboard" element={<PrivateRoute roles={['admin']}><AdminDashboard /></PrivateRoute>} />
       <Route path="/admin/users"     element={<PrivateRoute roles={['admin']}><AdminUsers /></PrivateRoute>}     />
       <Route path="/admin/jobs"      element={<PrivateRoute roles={['admin']}><AdminJobs /></PrivateRoute>}      />
+      <Route path="/admin/analytics" element={<PrivateRoute roles={['admin']}><AdminAnalytics /></PrivateRoute>} />
 
       {/* Catch all */}
       <Route path="*" element={<Navigate to="/" />} />

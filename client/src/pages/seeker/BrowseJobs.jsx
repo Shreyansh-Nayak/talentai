@@ -17,11 +17,15 @@ export default function BrowseJobs() {
   const [location, setLocation] = useState('');
   const [jobType, setJobType] = useState('');
   const [activeSkill, setActiveSkill] = useState('All');
-  const [savedJobs, setSavedJobs] = useState([]);
   const [allJobs, setAllJobs] = useState([]);
   const [selectedJob, setSelectedJob] = useState(allJobs[0]);
   const [fetching, setFetching] = useState(true);
   const [appliedJobs, setAppliedJobs] = useState([]);
+  const [savedJobs, setSavedJobs] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('savedJobs') || '[]');
+    } catch { return []; }
+  });
 
   useEffect(() => {
     const fetchJobs = async () => {
@@ -64,12 +68,21 @@ export default function BrowseJobs() {
     return matchSearch && matchLocation && matchType && matchSkill;
   });
 
-  const handleSave = (e, jobId) => {
+  const handleSave = (e, job) => {
     e.stopPropagation();
-    setSavedJobs((prev) =>
-      prev.includes(jobId) ? prev.filter((id) => id !== jobId) : [...prev, jobId]
-    );
-    toast.success(savedJobs.includes(jobId) ? 'Job unsaved' : 'Job saved!');
+    const isAlreadySaved = savedJobs.some(s => s.id === job.id);
+
+    if (isAlreadySaved) {
+      const updated = savedJobs.filter(s => s.id !== job.id);
+      setSavedJobs(updated);
+      localStorage.setItem('savedJobs', JSON.stringify(updated));
+      toast.success('Job removed from saved');
+    } else {
+      const updated = [...savedJobs, job];
+      setSavedJobs(updated);
+      localStorage.setItem('savedJobs', JSON.stringify(updated));
+      toast.success('Job saved! View in Saved Jobs →');
+    }
   };
 
   const handleApply = async (e, job) => {
@@ -191,11 +204,13 @@ export default function BrowseJobs() {
                         <div className="text-xs text-gray-400 mt-0.5">{job.company} · {job.location}</div>
                       </div>
                       <button
-                        onClick={(e) => handleSave(e, job.id)}
-                        className={`text-lg flex-shrink-0 transition-colors ${savedJobs.includes(job.id) ? 'text-yellow-400' : 'text-gray-600 hover:text-gray-400'
+                        onClick={(e) => handleSave(e, job)}
+                        className={`text-lg flex-shrink-0 transition-colors ${savedJobs.some(s => s.id === job.id)
+                          ? 'text-yellow-400'
+                          : 'text-gray-600 hover:text-gray-400'
                           }`}
                       >
-                        {savedJobs.includes(job.id) ? '🔖' : '🔖'}
+                        🔖
                       </button>
                     </div>
 
@@ -289,18 +304,20 @@ export default function BrowseJobs() {
                 onClick={(e) => handleApply(e, selectedJob)}
                 disabled={appliedJobs.includes(selectedJob.id)}
                 className={`flex-1 py-3 text-sm rounded-lg font-medium transition-all ${appliedJobs.includes(selectedJob.id)
-                    ? 'bg-green-500/10 border border-green-500/20 text-green-400 cursor-default'
-                    : 'btn-primary'
+                  ? 'bg-green-500/10 border border-green-500/20 text-green-400 cursor-default'
+                  : 'btn-primary'
                   }`}
               >
                 {appliedJobs.includes(selectedJob.id) ? '✓ Applied' : 'Apply Now →'}
               </button>
               <button
-                onClick={(e) => handleSave(e, selectedJob.id)}
-                className={`btn-outline px-5 py-3 text-sm ${savedJobs.includes(selectedJob.id) ? 'border-yellow-500/50 text-yellow-400' : ''
+                onClick={(e) => handleSave(e, selectedJob)}
+                className={`btn-outline px-5 py-3 text-sm ${savedJobs.some(s => s.id === selectedJob.id)
+                    ? 'border-yellow-500/50 text-yellow-400'
+                    : ''
                   }`}
               >
-                {savedJobs.includes(selectedJob.id) ? '🔖 Saved' : '🔖 Save'}
+                {savedJobs.some(s => s.id === selectedJob.id) ? '🔖 Saved' : '🔖 Save'}
               </button>
               <button
                 onClick={() => navigate('/seeker/ats')}

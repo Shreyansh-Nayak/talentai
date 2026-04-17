@@ -1,20 +1,29 @@
-# Root
+# Node modules
 node_modules/
+server/node_modules/
+client/node_modules/
+
+# Environment files (NEVER commit these)
 .env
 .env.local
 .env.production
-
-# Server
-server/node_modules/
 server/.env
-
-# Client
-client/node_modules/
 client/.env
 client/.env.local
 client/.env.production
-client/dist/
 
-# Misc
-.DS_Store
+# Build output
+client/dist/
+client/build/
+
+# Logs
 *.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/

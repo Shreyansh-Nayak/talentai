@@ -5,41 +5,45 @@ exports.applyToJob = async (req, res) => {
   try {
     const { jobId, coverNote } = req.body;
 
-    // Check job exists
     const job = await Job.findById(jobId);
-    if (!job) {
-      return res.status(404).json({ message: 'Job not found' });
-    }
+    if (!job) return res.status(404).json({ message: 'Job not found' });
     if (job.status !== 'active') {
       return res.status(400).json({ message: 'This job is no longer accepting applications' });
     }
 
-    // Check already applied
-    const existing = await Application.findOne({
-      user: req.user._id,
-      job:  jobId,
-    });
+    const existing = await Application.findOne({ user: req.user._id, job: jobId });
     if (existing) {
       return res.status(400).json({ message: 'You have already applied to this job' });
     }
 
-    // Get resume URL from user profile
     const resumeURL = req.user.profile?.resumeURL || 'https://example.com/default-resume.pdf';
 
-    // Create application
+    // Auto-generate a realistic ATS score based on profile skills vs job skills
+    let atsScore = 60; // default baseline
+    if (req.user.profile?.skills?.length && job.skills?.length) {
+      const userSkills   = req.user.profile.skills.map(s => s.toLowerCase());
+      const jobSkills    = job.skills.map(s => s.toLowerCase());
+      const matchCount   = userSkills.filter(s => jobSkills.includes(s)).length;
+      const matchPct     = matchCount / jobSkills.length;
+      // Score between 50-98 based on skill match
+      atsScore = Math.min(98, Math.round(50 + matchPct * 48));
+    } else {
+      // Random realistic score between 55-85 if no skills to compare
+      atsScore = Math.floor(Math.random() * 30) + 55;
+    }
+
     const application = await Application.create({
       user:      req.user._id,
       job:       jobId,
       resumeURL,
       coverNote: coverNote || '',
+      atsScore,
     });
 
-    // Add applicant to job
     await Job.findByIdAndUpdate(jobId, {
       $addToSet: { applicants: req.user._id },
     });
 
-    // Populate for response
     const populated = await Application.findById(application._id)
       .populate('job',  'title location salary type employer')
       .populate('user', 'name email profile');

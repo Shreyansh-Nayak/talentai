@@ -6,7 +6,7 @@ import toast from 'react-hot-toast';
 const navItems = [
   { label: 'Dashboard',    icon: '◉', path: '/employer/dashboard' },
   { label: 'Post a Job',   icon: '✚', path: '/employer/post-job'  },
-  { label: 'My Job Posts', icon: '📋', path: '/employer/jobs'     },
+  { label: 'My Job Posts', icon: '📋', path: '/employer/jobs'     }, // ← was missing route
   { label: 'Applicants',   icon: '👥', path: '/employer/applicants'},
 ];
 
