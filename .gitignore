@@ -24,6 +24,18 @@ npm-debug.log*
 .DS_Store
 Thumbs.db
 
+# Dependencies
+node_modules/
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# Cache and generated files
+.cache/
+**/.cache/
+
 # Editor
 .vscode/
 .idea/
